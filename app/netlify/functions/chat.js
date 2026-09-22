@@ -40,6 +40,7 @@ ${evidence || '(ไม่มีข้อมูล)'}
     const response = await client.messages.create({
       model: 'claude-opus-5',
       max_tokens: 4096,
+      output_config: { effort: 'low' },
       system,
       messages,
     });
