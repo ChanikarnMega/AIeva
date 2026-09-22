@@ -47,7 +47,7 @@ ${evidence || '(ไม่มีข้อมูลคำตอบ/เรซูเ
       model: 'claude-opus-5',
       max_tokens: 4096,
       messages: [{ role: 'user', content: prompt }],
-      output_config: { format: zodOutputFormat(EvalSchema) },
+      output_config: { format: zodOutputFormat(EvalSchema), effort: 'low' },,
     });
     if (!response.parsed_output) {
       return json({ error: 'วิเคราะห์ไม่สำเร็จ: โมเดลไม่ส่งผลลัพธ์ในรูปแบบที่ถูกต้อง' }, 502);
