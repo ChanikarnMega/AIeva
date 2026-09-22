@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/modernist-08ff68a1-b73e-4891-aa86-fadb2ee6ea59/styles.css">
+  <script src="_ds/modernist-08ff68a1-b73e-4891-aa86-fadb2ee6ea59/_ds_bundle.js"></script>
+  <style>
+    body{margin:0}
+    a{color:var(--color-accent-700)}
+    a:hover{color:var(--color-accent)}
+    textarea,input[type=text]{font-family:var(--font-body)}
+    @media print {
+      .no-print{display:none!important}
+      body,#printArea{background:#fff!important}
+      #printArea{padding:0!important;max-width:none!important}
+    }
+    @page{margin:16mm}
+  </style>
+</helmet>
+<div style="--color-accent:#d6336b;--color-accent-2:#d6336b;--color-accent-100:#fdeef3;--color-accent-200:#fbd6e3;--color-accent-300:#f6aecb;--color-accent-400:#ec7ba8;--color-accent-500:#d6336b;--color-accent-600:#b8215a;--color-accent-700:#921a48;--color-accent-800:#6b1436;--color-accent-900:#451025;--color-accent-2-100:#fdeef3;--color-accent-2-200:#fbd6e3;--color-accent-2-300:#f6aecb;--color-accent-2-400:#ec7ba8;--color-accent-2-500:#d6336b;--color-accent-2-600:#b8215a;--color-accent-2-700:#921a48;--color-accent-2-800:#6b1436;--color-accent-2-900:#451025;--radius-sm:8px;--radius-md:12px;--radius-lg:18px;min-height:100vh;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);">
+
+  <div class="nav no-print" style="display:flex;align-items:center;justify-content:space-between;padding:var(--space-4) var(--space-6);border-bottom:2px solid var(--color-divider);">
+    <div style="display:flex;align-items:baseline;gap:var(--space-3);cursor:pointer" onClick="{{ goList }}">
+      <span style="font-family:var(--font-heading);font-weight:800;font-size:20px;letter-spacing:-0.01em;">Candidate Evaluation</span>
+      <span style="font-size:12px;color:color-mix(in srgb, var(--color-text) 55%, transparent);">ประเมินแคนดิเดทด้วย AI</span>
+    </div>
+    <button class="btn btn-primary" style="white-space:nowrap" onClick="{{ goUpload }}">+ วิเคราะห์แคนดิเดทใหม่</button>
+  </div>
+
+  <div style="max-width:920px;margin:0 auto;padding:var(--space-8) var(--space-6) 80px;">
+
+    <sc-if value="{{ isUpload }}" hint-placeholder-val="{{ true }}">
+      <div>
+        <h2 style="margin-bottom:var(--space-1)">อัปโหลดข้อมูลแคนดิเดท</h2>
+        <p class="text-muted" style="margin-bottom:var(--space-6)">ใส่ตำแหน่งงาน เกณฑ์ (ถ้ามี) แล้วอัปโหลดเรซูเม่/คำตอบของแคนดิเดท ระบบจะวิเคราะห์และให้คุณถามต่อได้</p>
+
+        <div class="field" style="margin-bottom:var(--space-4)">
+          <label>ชื่อแคนดิเดท</label>
+          <input class="input" type="text" value="{{ form.name }}" onChange="{{ onNameChange }}" placeholder="เช่น สมชาย ใจดี" />
+        </div>
+
+        <div class="field" style="margin-bottom:var(--space-4)">
+          <label>ตำแหน่งงาน / Job Description</label>
+          <textarea class="input" rows="3" value="{{ form.jd }}" onChange="{{ onJdChange }}" placeholder="วางรายละเอียดตำแหน่งงานหรือเกณฑ์ที่ต้องการ (ไม่บังคับ — ถ้าไม่ใส่ AI จะประเมินตามเกณฑ์ทั่วไปของตำแหน่งที่เกี่ยวข้อง)" style="resize:vertical;font-family:var(--font-body)"></textarea>
+          <div style="display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap;margin-top:var(--space-2)">
+            <label class="btn btn-secondary" style="cursor:pointer">
+              หรืออัปโหลดไฟล์ JD
+              <input type="file" multiple style="display:none" onChange="{{ onJdFilesSelected }}" />
+            </label>
+            <span class="text-muted" style="font-size:13px">PDF / Word / รูปภาพ / ข้อความ</span>
+          </div>
+          <sc-if value="{{ hasJdFiles }}" hint-placeholder-val="{{ false }}">
+            <ul style="list-style:none;padding:0;margin:var(--space-3) 0 0;display:flex;flex-direction:column;gap:var(--space-1)">
+              <sc-for list="{{ form.jdFiles }}" as="jf" hint-placeholder-count="0">
+                <li style="display:flex;align-items:center;justify-content:space-between;padding:var(--space-2) var(--space-3);background:var(--color-surface);border-radius:var(--radius-md);font-size:13px;">
+                  <span>{{ jf.name }} <span class="text-muted">({{ jf.sizeLabel }})</span></span>
+                  <button class="btn btn-icon" style="width:24px;height:24px;font-size:16px;padding:0" onClick="{{ jf.remove }}">×</button>
+                </li>
+              </sc-for>
+            </ul>
+          </sc-if>
+        </div>
+
+        <div class="field" style="margin-bottom:var(--space-4)">
+          <label>ไฟล์ (เรซูเม่ / คำตอบสัมภาษณ์ / คะแนน) — อัปโหลดได้หลายไฟล์</label>
+          <div style="display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap;">
+            <label class="btn btn-secondary" style="cursor:pointer">
+              เลือกไฟล์
+              <input type="file" multiple style="display:none" onChange="{{ onFilesSelected }}" />
+            </label>
+            <span class="text-muted" style="font-size:13px">รองรับ PDF / Word / รูปภาพ / ข้อความ</span>
+          </div>
+          <sc-if value="{{ hasFiles }}" hint-placeholder-val="{{ false }}">
+            <ul style="list-style:none;padding:0;margin:var(--space-3) 0 0;display:flex;flex-direction:column;gap:var(--space-1)">
+              <sc-for list="{{ form.files }}" as="f" hint-placeholder-count="0">
+                <li style="display:flex;align-items:center;justify-content:space-between;padding:var(--space-2) var(--space-3);background:var(--color-surface);border-radius:var(--radius-md);font-size:13px;">
+                  <span>{{ f.name }} <span class="text-muted">({{ f.sizeLabel }})</span></span>
+                  <button class="btn btn-icon" style="width:24px;height:24px;font-size:16px;padding:0" onClick="{{ f.remove }}">×</button>
+                </li>
+              </sc-for>
+            </ul>
+          </sc-if>
+        </div>
+
+        <div class="field" style="margin-bottom:var(--space-6)">
+          <label>หรือวางข้อความคำตอบ/เรซูเม่โดยตรง</label>
+          <textarea class="input" rows="6" value="{{ form.pastedText }}" onChange="{{ onPasteChange }}" placeholder="วางเนื้อหาคำตอบ, transcript การสัมภาษณ์ หรือประวัติของแคนดิเดทที่นี่ (แนะนำสำหรับไฟล์ PDF/Word/รูปภาพ ที่ต้นแบบนี้อ่านเนื้อไฟล์ไม่ได้โดยตรง)" style="resize:vertical;font-family:var(--font-body)"></textarea>
+        </div>
+
+        <sc-if value="{{ error }}" hint-placeholder-val="{{ false }}">
+          <p style="color:var(--color-accent-700);font-size:13px;margin-bottom:var(--space-4)">{{ error }}</p>
+        </sc-if>
+
+        <button class="btn btn-primary btn-block" onClick="{{ analyze }}" disabled="{{ analyzing }}">{{ analyzeLabel }}</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isList }}" hint-placeholder-val="{{ false }}">
+      <div>
+        <h2 style="margin-bottom:var(--space-1)">ประวัติแคนดิเดทที่วิเคราะห์แล้ว</h2>
+        <p class="text-muted" style="margin-bottom:var(--space-6)">คลิกที่แคนดิเดทเพื่อดูรายละเอียดหรือถามคำถามเพิ่ม</p>
+        <sc-if value="{{ hasCandidates }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;">
+            <sc-for list="{{ candidates }}" as="c" hint-placeholder-count="0">
+              <div class="card elev-sm" style="display:flex;flex-direction:row;align-items:center;justify-content:space-between;margin-bottom:var(--space-3);cursor:pointer" onClick="{{ c.open }}">
+                <div>
+                  <div style="font-family:var(--font-heading);font-weight:800;font-size:17px">{{ c.name }}</div>
+                  <div class="text-muted" style="font-size:12px;margin-top:2px">{{ c.dateLabel }}</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:var(--space-3)">
+                  <span class="tag {{ c.tagClass }}">{{ c.passLabel }}</span>
+                  <span style="font-family:var(--font-heading);font-weight:800;font-size:20px;min-width:56px;text-align:right;color:var(--color-accent-700)">{{ c.scoreLabel }}</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ noCandidates }}" hint-placeholder-val="{{ true }}">
+          <div style="padding:var(--space-8) 0;text-align:left">
+            <p class="text-muted">ยังไม่มีแคนดิเดทที่วิเคราะห์ กดปุ่ม "วิเคราะห์แคนดิเดทใหม่" ด้านบนเพื่อเริ่ม</p>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
+      <div>
+        <div class="no-print" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-4)">
+          <a href="#" onClick="{{ goList }}" style="font-size:13px;white-space:nowrap">&larr; กลับหน้ารายการ</a>
+          <button class="btn btn-secondary" style="white-space:nowrap" onClick="{{ exportPdf }}">พิมพ์ / บันทึกเป็น PDF</button>
+        </div>
+
+        <div id="printArea">
+          <div class="card elev-sm" style="margin-bottom:var(--space-6);gap:var(--space-3)">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-4)">
+              <div>
+                <span class="card-kicker">ผลการประเมิน</span>
+                <h2 style="margin-top:2px;margin-bottom:4px">{{ p.name }}</h2>
+                <span class="text-muted" style="font-size:12px">{{ p.dateLabel }}</span>
+              </div>
+              <div style="text-align:right;flex:none">
+                <div style="font-family:var(--font-heading);font-weight:800;font-size:40px;line-height:1;color:var(--color-accent-700)">{{ p.scoreLabel }}</div>
+                <span class="tag {{ p.tagClass }}" style="margin-top:var(--space-1);display:inline-block">{{ p.passLabel }}</span>
+              </div>
+            </div>
+            <sc-if value="{{ p.hasJd }}" hint-placeholder-val="{{ false }}">
+              <div style="border-top:1px solid var(--color-divider);padding-top:var(--space-2);margin-top:var(--space-1)">
+                <span class="text-muted" style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em">ตำแหน่งงาน / เกณฑ์</span>
+                <p style="font-size:13px;margin:2px 0 0;white-space:pre-wrap">{{ p.jd }}</p>
+              </div>
+            </sc-if>
+          </div>
+
+          <div class="card elev-sm" style="margin-bottom:var(--space-6)">
+            <span class="card-kicker">สรุปภาพรวม</span>
+            <p style="font-size:15px;margin:0;opacity:1">{{ p.summary }}</p>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);margin-bottom:var(--space-6)">
+            <div class="card elev-sm">
+              <span class="card-kicker">จุดแข็ง</span>
+              <ul style="margin:0;padding-left:18px;font-size:14px">
+                <sc-for list="{{ p.strengths }}" as="it" hint-placeholder-count="0"><li style="margin-bottom:6px">{{ it }}</li></sc-for>
+              </ul>
+            </div>
+            <div class="card elev-sm">
+              <span class="card-kicker" style="color:var(--color-text);opacity:0.55">ข้อควรพัฒนา</span>
+              <ul style="margin:0;padding-left:18px;font-size:14px">
+                <sc-for list="{{ p.weaknesses }}" as="it" hint-placeholder-count="0"><li style="margin-bottom:6px">{{ it }}</li></sc-for>
+              </ul>
+            </div>
+          </div>
+
+          <div class="card elev-sm" style="margin-bottom:var(--space-6)">
+            <span class="card-kicker">รายละเอียดตามเกณฑ์</span>
+            <div style="display:flex;flex-direction:column;">
+              <sc-for list="{{ p.rubric }}" as="r" hint-placeholder-count="0">
+                <div style="padding:var(--space-3) 0;border-bottom:1px solid var(--color-divider)">
+                  <div style="font-weight:800;font-size:14px">{{ r.criterion }}</div>
+                  <div class="text-muted" style="font-size:13px;margin-top:2px">{{ r.note }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <sc-if value="{{ p.hasFiles }}" hint-placeholder-val="{{ false }}">
+            <div class="card elev-sm no-print" style="margin-bottom:var(--space-6)">
+              <span class="card-kicker">ไฟล์ที่แนบ</span>
+              <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:var(--space-1)">
+                <sc-for list="{{ p.files }}" as="f" hint-placeholder-count="0">
+                  <li style="padding:var(--space-2) var(--space-3);background:var(--color-bg);border-radius:var(--radius-md);font-size:13px">{{ f.name }}</li>
+                </sc-for>
+              </ul>
+            </div>
+          </sc-if>
+        </div>
+
+        <button class="btn btn-primary no-print" onClick="{{ p.openChat }}">ถามคำถามเพิ่มเติมกับ AI &rarr;</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isChat }}" hint-placeholder-val="{{ false }}">
+      <div>
+        <a href="#" onClick="{{ p.backToProfile }}" style="font-size:13px;display:inline-block;margin-bottom:var(--space-4)">&larr; กลับไปโปรไฟล์ {{ p.name }}</a>
+        <h2 style="margin-bottom:var(--space-1)">ถาม-ตอบเกี่ยวกับ {{ p.name }}</h2>
+        <p class="text-muted" style="margin-bottom:var(--space-6)">เช่น "ทำไมคนนี้ไม่ผ่าน" หรือ "คิดว่าทำไมเขาไม่ตอบแบบนี้"</p>
+
+        <div style="display:flex;flex-direction:column;margin-bottom:var(--space-6)">
+          <sc-for list="{{ p.chat }}" as="m" hint-placeholder-count="0">
+            <div style="padding:var(--space-3) 0;border-bottom:1px solid var(--color-divider)">
+              <span class="tag {{ m.tagClass }}" style="margin-bottom:6px;display:inline-block">{{ m.label }}</span>
+              <p style="margin:6px 0 0;white-space:pre-wrap">{{ m.text }}</p>
+            </div>
+          </sc-for>
+          <sc-if value="{{ p.chatEmpty }}" hint-placeholder-val="{{ true }}">
+            <p class="text-muted" style="padding:var(--space-4) 0">ยังไม่มีคำถาม เริ่มพิมพ์ด้านล่างได้เลย</p>
+          </sc-if>
+        </div>
+
+        <div class="field">
+          <textarea class="input" rows="3" value="{{ chatInput }}" onChange="{{ onChatInputChange }}" placeholder="พิมพ์คำถาม..." style="resize:vertical;font-family:var(--font-body)"></textarea>
+        </div>
+        <button class="btn btn-primary" style="margin-top:var(--space-3)" onClick="{{ sendChat }}" disabled="{{ chatSending }}">{{ chatSendLabel }}</button>
+      </div>
+    </sc-if>
+
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    view: 'list',
+    candidates: [],
+    activeId: null,
+    form: { name: '', jd: '', pastedText: '', files: [], jdFiles: [] },
+    analyzing: false,
+    error: null,
+    chatInput: '',
+    chatSending: false,
+  };
+
+  componentDidMount() {
+    try {
+      const raw = localStorage.getItem('cand_eval_data_v1');
+      if (raw) {
+        const candidates = JSON.parse(raw);
+        this.setState({ candidates, view: candidates.length ? 'list' : 'upload' });
+      } else {
+        this.setState({ view: 'upload' });
+      }
+    } catch (e) { this.setState({ view: 'upload' }); }
+  }
+
+  persist(candidates) {
+    try { localStorage.setItem('cand_eval_data_v1', JSON.stringify(candidates)); } catch (e) {}
+  }
+
+  onNameChange = (e) => this.setState(s => ({ form: { ...s.form, name: e.target.value } }));
+  onJdChange = (e) => this.setState(s => ({ form: { ...s.form, jd: e.target.value } }));
+  onPasteChange = (e) => this.setState(s => ({ form: { ...s.form, pastedText: e.target.value } }));
+
+  sizeLabel(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+
+  readFileMeta = (file) => new Promise((resolve) => {
+    const meta = { name: file.name, size: file.size, sizeLabel: this.sizeLabel(file.size), text: null };
+    const isTexty = /\.(txt|md|csv|json)$/i.test(file.name) || file.type === 'text/plain';
+    if (isTexty) {
+      const reader = new FileReader();
+      reader.onload = () => { meta.text = String(reader.result || '').slice(0, 20000); resolve(meta); };
+      reader.onerror = () => resolve(meta);
+      reader.readAsText(file);
+    } else {
+      resolve(meta);
+    }
+  });
+
+  onFilesSelected = (e) => {
+    const fileList = Array.from(e.target.files || []);
+    Promise.all(fileList.map(this.readFileMeta)).then((metas) => {
+      this.setState(s => ({ form: { ...s.form, files: [...s.form.files, ...metas] } }));
+    });
+    e.target.value = '';
+  };
+
+  removeFile(idx) {
+    this.setState(s => ({ form: { ...s.form, files: s.form.files.filter((_, i) => i !== idx) } }));
+  }
+
+  onJdFilesSelected = (e) => {
+    const fileList = Array.from(e.target.files || []);
+    Promise.all(fileList.map(this.readFileMeta)).then((metas) => {
+      this.setState(s => ({ form: { ...s.form, jdFiles: [...s.form.jdFiles, ...metas] } }));
+    });
+    e.target.value = '';
+  };
+
+  removeJdFile(idx) {
+    this.setState(s => ({ form: { ...s.form, jdFiles: s.form.jdFiles.filter((_, i) => i !== idx) } }));
+  }
+
+  goUpload = () => this.setState({ view: 'upload', form: { name: '', jd: '', pastedText: '', files: [], jdFiles: [] }, error: null });
+  goList = () => this.setState({ view: 'list' });
+
+  buildJdText(form) {
+    let parts = [];
+    if (form.jd && form.jd.trim()) parts.push(form.jd.trim());
+    (form.jdFiles || []).forEach(f => {
+      if (f.text) parts.push(`เนื้อหาไฟล์ JD "${f.name}":\n` + f.text);
+      else parts.push(`ไฟล์ JD แนบ (อ่านเนื้อไฟล์ไม่ได้ในต้นแบบนี้): ${f.name}`);
+    });
+    return parts.join('\n\n');
+  }
+
+  buildEvidenceText(form) {
+    let parts = [];
+    if (form.pastedText && form.pastedText.trim()) parts.push('ข้อความที่วางโดยตรง:\n' + form.pastedText.trim());
+    form.files.forEach(f => {
+      if (f.text) parts.push(`เนื้อหาไฟล์ "${f.name}":\n` + f.text);
+      else parts.push(`ไฟล์แนบ (ไม่สามารถอ่านเนื้อไฟล์ในต้นแบบนี้ได้): ${f.name}`);
+    });
+    return parts.join('\n\n---\n\n') || '(ไม่มีข้อมูลคำตอบ/เรซูเม่ที่อ่านได้ กรุณาประเมินจากข้อมูลที่มีอย่างจำกัด)';
+  }
+
+  analyze = async () => {
+    const { form } = this.state;
+    if (!form.name.trim()) { this.setState({ error: 'กรุณาใส่ชื่อแคนดิเดท' }); return; }
+    this.setState({ analyzing: true, error: null });
+    const evidence = this.buildEvidenceText(form);
+    const jdText = this.buildJdText(form);
+    const prompt = `คุณเป็นผู้ช่วยฝ่ายบุคคลที่ช่วยประเมินแคนดิเดทสำหรับตำแหน่งงาน
+ตำแหน่งงาน/เกณฑ์ที่ต้องการ: ${jdText || '(ไม่ได้ระบุ ให้ประเมินตามเกณฑ์ทั่วไปที่เหมาะสมกับข้อมูลที่มี)'}
+
+ข้อมูลของแคนดิเดท "${form.name.trim()}":
+${evidence}
+
+โปรดประเมินแคนดิเดทคนนี้ แล้วตอบกลับเป็น JSON เท่านั้น (ไม่มีข้อความอื่นนอก JSON) ในรูปแบบ:
+{
+  "score": <ตัวเลข 0-100>,
+  "pass": <true หรือ false>,
+  "summary": "<สรุปภาพรวม 2-3 ประโยค เป็นภาษาไทย>",
+  "strengths": ["...", "..."],
+  "weaknesses": ["...", "..."],
+  "rubric": [{"criterion": "...", "note": "..."}]
+}`;
+    try {
+      const text = await window.claude.complete(prompt);
+      const match = text.match(/\{[\s\S]*\}/);
+      if (!match) throw new Error('no json');
+      const evalResult = JSON.parse(match[0]);
+      const candidate = {
+        id: 'c' + Date.now(),
+        name: form.name.trim(),
+        jd: jdText,
+        jdFiles: form.jdFiles.map(f => ({ name: f.name, size: f.size, text: f.text })),
+        files: form.files.map(f => ({ name: f.name, size: f.size, text: f.text })),
+        pastedText: form.pastedText.trim(),
+        eval: evalResult,
+        chat: [],
+        createdAt: Date.now(),
+      };
+      const candidates = [candidate, ...this.state.candidates];
+      this.persist(candidates);
+      this.setState({ candidates, analyzing: false, view: 'profile', activeId: candidate.id });
+    } catch (e) {
+      this.setState({ analyzing: false, error: 'วิเคราะห์ไม่สำเร็จ ลองใหม่อีกครั้ง (' + e.message + ')' });
+    }
+  };
+
+  openCandidate(id) { this.setState({ view: 'profile', activeId: id }); }
+  openChat(id) { this.setState({ view: 'chat', activeId: id }); }
+  backToProfile(id) { this.setState({ view: 'profile', activeId: id }); }
+  exportPdf = () => window.print();
+
+  onChatInputChange = (e) => this.setState({ chatInput: e.target.value });
+
+  sendChat = async () => {
+    const s = this.state;
+    const question = s.chatInput.trim();
+    if (!question || s.chatSending) return;
+    const cIdx = s.candidates.findIndex(c => c.id === s.activeId);
+    if (cIdx === -1) return;
+    const candidate = s.candidates[cIdx];
+    const history = candidate.chat.map(m => `${m.role === 'user' ? 'ผู้ใช้' : 'AI'}: ${m.text}`).join('\n');
+    const evidence = this.buildEvidenceText({ pastedText: candidate.pastedText, files: candidate.files });
+    const prompt = `คุณเป็นผู้ช่วยฝ่ายบุคคลที่ช่วยตอบคำถามเกี่ยวกับแคนดิเดทคนหนึ่ง โดยอ้างอิงจากข้อมูลและผลประเมินที่มีอยู่เท่านั้น ตอบเป็นภาษาไทย กระชับ ตรงประเด็น
+
+ตำแหน่งงาน/เกณฑ์: ${candidate.jd || '(ไม่ได้ระบุ)'}
+
+ข้อมูลของแคนดิเดท "${candidate.name}":
+${evidence}
+
+ผลประเมินที่คำนวณไว้แล้ว: ${JSON.stringify(candidate.eval)}
+
+บทสนทนาก่อนหน้า:
+${history || '(ยังไม่มี)'}
+
+คำถามใหม่จากผู้ใช้: ${question}
+
+โปรดตอบคำถามนี้โดยตรง`;
+    const newChat = [...candidate.chat, { role: 'user', text: question }];
+    let candidates = [...s.candidates];
+    candidates[cIdx] = { ...candidate, chat: newChat };
+    this.setState({ candidates, chatInput: '', chatSending: true });
+    try {
+      const answer = await window.claude.complete(prompt);
+      const finalChat = [...newChat, { role: 'assistant', text: answer.trim() }];
+      candidates = [...this.state.candidates];
+      const idx2 = candidates.findIndex(c => c.id === s.activeId);
+      candidates[idx2] = { ...candidates[idx2], chat: finalChat };
+      this.persist(candidates);
+      this.setState({ candidates, chatSending: false });
+    } catch (e) {
+      const finalChat = [...newChat, { role: 'assistant', text: 'ขออภัย เกิดข้อผิดพลาด ลองใหม่อีกครั้ง' }];
+      candidates = [...this.state.candidates];
+      const idx2 = candidates.findIndex(c => c.id === s.activeId);
+      candidates[idx2] = { ...candidates[idx2], chat: finalChat };
+      this.setState({ candidates, chatSending: false });
+    }
+  };
+
+  fmtDate(ts) {
+    const d = new Date(ts);
+    return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' }) + ' ' + d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  renderVals() {
+    const s = this.state;
+    const form = {
+      ...s.form,
+      files: s.form.files.map((f, i) => ({ ...f, remove: () => this.removeFile(i) })),
+      jdFiles: s.form.jdFiles.map((f, i) => ({ ...f, remove: () => this.removeJdFile(i) })),
+    };
+    const candidates = s.candidates.map(c => ({
+      id: c.id,
+      name: c.name,
+      dateLabel: this.fmtDate(c.createdAt),
+      scoreLabel: (c.eval && typeof c.eval.score === 'number') ? c.eval.score + '/100' : '—',
+      passLabel: c.eval && c.eval.pass ? 'ผ่าน' : 'ไม่ผ่าน',
+      tagClass: c.eval && c.eval.pass ? 'tag tag-accent' : 'tag tag-neutral',
+      open: () => this.openCandidate(c.id),
+    }));
+    const active = s.candidates.find(c => c.id === s.activeId);
+    let p = {};
+    if (active) {
+      const ev = active.eval || {};
+      p = {
+        name: active.name,
+        dateLabel: this.fmtDate(active.createdAt),
+        scoreLabel: typeof ev.score === 'number' ? ev.score + '/100' : '—',
+        passLabel: ev.pass ? 'ผ่าน' : 'ไม่ผ่าน',
+        tagClass: ev.pass ? 'tag-accent' : 'tag-neutral',
+        hasJd: !!active.jd,
+        jd: active.jd,
+        summary: ev.summary || '',
+        strengths: ev.strengths || [],
+        weaknesses: ev.weaknesses || [],
+        rubric: ev.rubric || [],
+        hasFiles: (active.files || []).length > 0,
+        files: active.files || [],
+        openChat: () => this.openChat(active.id),
+        backToProfile: () => this.backToProfile(active.id),
+        chat: active.chat.map(m => ({
+          text: m.text,
+          label: m.role === 'user' ? 'คำถาม' : 'AI',
+          tagClass: m.role === 'user' ? 'tag-neutral' : 'tag-accent',
+        })),
+        chatEmpty: active.chat.length === 0,
+      };
+    }
+    return {
+      isUpload: s.view === 'upload',
+      isList: s.view === 'list',
+      isProfile: s.view === 'profile' && !!active,
+      isChat: s.view === 'chat' && !!active,
+      hasCandidates: s.candidates.length > 0,
+      noCandidates: s.candidates.length === 0,
+      hasFiles: form.files.length > 0,
+      hasJdFiles: form.jdFiles.length > 0,
+      form,
+      analyzing: s.analyzing,
+      analyzeLabel: s.analyzing ? 'กำลังวิเคราะห์...' : 'วิเคราะห์แคนดิเดท',
+      error: s.error,
+      candidates,
+      p,
+      chatInput: s.chatInput,
+      chatSending: s.chatSending,
+      chatSendLabel: s.chatSending ? 'กำลังตอบ...' : 'ส่งคำถาม',
+      onChatInputChange: this.onChatInputChange,
+      sendChat: this.sendChat,
+      onNameChange: this.onNameChange,
+      onJdChange: this.onJdChange,
+      onPasteChange: this.onPasteChange,
+      onFilesSelected: this.onFilesSelected,
+      analyze: this.analyze,
+      goUpload: this.goUpload,
+      goList: this.goList,
+      exportPdf: this.exportPdf,
+    };
+  }
+}
+</script>
+</body>
+</html>

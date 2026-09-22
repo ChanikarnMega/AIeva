@@ -1,0 +1,73 @@
+/*
+ * Candidate Evaluation theme — layered on top of the Modernist design
+ * system (modernist.css) exactly the way the design prototype did it:
+ * override the accent ramp with pink, and give corners a radius.
+ * Everything else (type, spacing, shadows, component classes) stays
+ * exactly as Modernist defines it.
+ */
+:root {
+  --color-accent: #d6336b;
+  --color-accent-2: #d6336b;
+
+  --color-accent-100: #fdeef3;
+  --color-accent-200: #fbd6e3;
+  --color-accent-300: #f6aecb;
+  --color-accent-400: #ec7ba8;
+  --color-accent-500: #d6336b;
+  --color-accent-600: #b8215a;
+  --color-accent-700: #921a48;
+  --color-accent-800: #6b1436;
+  --color-accent-900: #451025;
+
+  --color-accent-2-100: #fdeef3;
+  --color-accent-2-200: #fbd6e3;
+  --color-accent-2-300: #f6aecb;
+  --color-accent-2-400: #ec7ba8;
+  --color-accent-2-500: #d6336b;
+  --color-accent-2-600: #b8215a;
+  --color-accent-2-700: #921a48;
+  --color-accent-2-800: #6b1436;
+  --color-accent-2-900: #451025;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+}
+
+a {
+  color: var(--color-accent-700);
+}
+a:hover {
+  color: var(--color-accent);
+}
+
+textarea,
+input[type='text'] {
+  font-family: var(--font-body);
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body,
+  #printArea {
+    background: #fff !important;
+  }
+  #printArea {
+    padding: 0 !important;
+    max-width: none !important;
+  }
+}
+
+@page {
+  margin: 16mm;
+}
