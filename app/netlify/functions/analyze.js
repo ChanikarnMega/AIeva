@@ -44,7 +44,7 @@ ${evidence || '(ไม่มีข้อมูลคำตอบ/เรซูเ
 
   try {
     const response = await client.messages.parse({
-      model: 'claude-opus-5',
+      model: 'claude-sonnet-5',
       max_tokens: 4096,
       messages: [{ role: 'user', content: prompt }],
       output_config: { format: zodOutputFormat(EvalSchema), effort: 'low' },
